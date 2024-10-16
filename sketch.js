@@ -15,7 +15,7 @@ let clearButton;
 
 function preload() {
   font = loadFont('https://cdnjs.cloudflare.com/ajax/libs/topcoat/0.8.0/font/SourceSansPro-Light.otf');
-  song = loadSound('memory_1.m4a'); 
+  song = loadSound('memory-1.mp3'); 
 }
 
 function setup() {
