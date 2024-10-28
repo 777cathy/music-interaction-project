@@ -5,4 +5,5 @@
 - [4] Ignat Kushanrev. 2018. Canon, EOS 1200D picture. Retrieved from https://unsplash.com/photos/flat-lay-photography-of-mirrorless-camera-izJzHDw77eg
 - [5] tkky. 2019. Piano Chopped & Edited.wav. Retrieved from https://freesound.org/people/tkky/sounds/486472/
 - [6] Shuinvy. 2014. ChildhoodMusicBox.mp3. Retrieved from https://freesound.org/people/Shuinvy/sounds/238070/
-
+- [7] Gonçalo Perdigão. 2024. Flow Field of Particles. Retrieved from https://openprocessing.org/sketch/2412918
+- [8] Greg Wadley, Vassilis Kostakos, Peter Koval, Wally Smith, Sarah Webber, Anna Cox, James Gross, Kristina Höök, Regan Mandryk, Petr Slovák. 2022. The Future of Emotion in Human-Computer Interaction. Retrieved from https://rest.neptune-prod.its.unimelb.edu.au/server/api/core/bitstreams/87377c5f-2a63-5ecd-9b36-c1979186d21e/content

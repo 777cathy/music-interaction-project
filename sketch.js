@@ -947,7 +947,7 @@ class FlowFieldScene {
           break;
         case 'c': 
           this.colorMode = 'default';
-          this.updateCenterText("Memories flow in your brain...");
+          this.updateCenterText("Memories flow in your mind...");
           break;
         case 'p': 
           this.noiseScale = random(0.05, 0.2);
