@@ -1,8 +1,12 @@
 let currentScene;
 let scenes = {};
 let tickSound, hourglassSound, oldPhotoSound, oldPhotoImage,fieldFlowSound;
+//address "AudioContext" issue on Chorme
+let audioContextStarted = false;
 
-
+/* 
+ Preload background music for each scene and background picture. 
+ */
 function preload() {
   tickSound = loadSound("tick_tock.wav");
   hourglassSound = loadSound("hourglass_sound.mp3");
@@ -17,7 +21,7 @@ function setup() {
   textAlign(CENTER, CENTER);
   tickSound.loop();
 
-  // 初始化场景
+  // All scenes
   scenes = {
     main: new MainScene(),
     timeRewind: new TimeRewindScene(),
@@ -25,14 +29,13 @@ function setup() {
     flowField: new FlowFieldScene(),
     transition: new TransitionScene(),
     delayedVideo: new DelayedVideoScene()
-  
   };
   
   currentScene = scenes.main;
-  // 添加错误处理
+  // Logic deal with scene error
   if (!currentScene) {
     console.error('Current scene not properly initialized');
-    currentScene = scenes.main; // 使用默认场景作为后备
+    currentScene = scenes.main; 
   }
 }
 
@@ -40,12 +43,25 @@ function draw() {
   currentScene.display();
 }
 
+/* 
+address "AudioContext" issue
+ */
+function resumeAudioContext() {
+  if (!audioContextStarted) {
+    if (typeof getAudioContext === 'function') {
+      getAudioContext().resume(); //start sound
+      audioContextStarted = true;
+    }
+  }
+}
+
+/* 
+address "AudioContext" issue, palying sound after the first interaction
+ */
 function mousePressed() {
-  // 添加错误检查
+  resumeAudioContext();
   if (currentScene && typeof currentScene.handleClick === 'function') {
     currentScene.handleClick();
-  } else {
-    console.error('Invalid scene or missing handleClick method');
   }
 }
 
@@ -56,15 +72,21 @@ function windowResized() {
   }
 }
 
-// 主场景
+
+/**
+ * MainScene：Initial scene class. Display an interactive clock, bringing users to entangled reality travel.
+ * @class
+ * @description The scene contains a dynamically clock, gradually displayed guidance text and mouse follow effect.
+ * Click the screen to gradually display the text, and after the guidance is completed, it will switch to the time rewind scene.
+ */
 class MainScene {
   constructor() {
-    this.hourLength = 150;   // 时针长度
-    this.minuteLength = 200; // 分针长度
-    this.clockRadius = 250;  // 时钟圆盈大小
-    this.textAlpha = [0, 0, 0, 0]; // 文字透明度全部初始化为0
+    this.hourLength = 150;   
+    this.minuteLength = 200; 
+    this.clockRadius = 250;  
+    this.textAlpha = [0, 0, 0, 0];
     this.ticktock = 0;
-    this.time = 0;          // 用于动画的时间计数器
+    this.time = 0;         
   }
 
   display() {
@@ -72,14 +94,14 @@ class MainScene {
     this.drawClock();
     this.drawMainTexts();
     this.drawMouseInteraction();
-    this.time += 0.002;  // 降低转动速度
+    this.time += 0.002;  
   }
 
   drawClock() {
     push();
     translate(width / 2, height / 2);
     
-    // 绘制时钟外圈
+    // Draw the outline of the clock
     noFill();
     strokeWeight(2);
     for (let i = 0; i < 6; i++) {
@@ -87,7 +109,7 @@ class MainScene {
       ellipse(0, 0, this.clockRadius + i * 20);
     }
 
-    // 绘制时钟刻度
+    // Draw the clock ticks
     for (let i = 0; i < 12; i++) {
       let angle = i * TWO_PI / 12;
       push();
@@ -99,7 +121,7 @@ class MainScene {
     }
    
 
-    // 绘制分针
+    // Draw minute length
     push();
     rotate(this.time);
     stroke(255, 100, 50);
@@ -107,7 +129,7 @@ class MainScene {
     line(0, 0, 0, -this.minuteLength);
     pop();
 
-    // 绘制时针
+    // draw hour length
     push();
     rotate(this.time * 0.5);
     stroke(255, 50, 0);
@@ -115,35 +137,31 @@ class MainScene {
     line(0, 0, 0, -this.hourLength);
     pop();
     
-    // 绘制中心点
+    // draw clock center
     fill(255, 100, 50);
     noStroke();
     ellipse(0, 0, 20);
     pop();
-
-
   }
 
   drawMainTexts() {
     textSize(40);
     let texts = ["Time is running.","But......","Do you believe in time travel?", "Or have you ever seen an entangled world?"];
     let colors = [
-      [234, 84, 85],    // 深珊瑚红
-      [255, 107, 107],  // 鲜艳的珊瑚色
-      [226, 83, 83],    // 深玫瑰红
-      [214, 69, 65]     // 暗红色
+      [234, 84, 85],    
+      [255, 107, 107],  
+      [226, 83, 83],    
+      [214, 69, 65]     
     ];
     
     let yOffset = height * 0.75;
     
     for (let i = 0; i < 4; i++) {
       if (this.textAlpha[i] > 0) {
-        // 添加文字阴影效果增加可读性
         push();
-        fill(0, 0, 0, this.textAlpha[i] * 0.2);  // 半透明黑色阴影
-        text(texts[i], width / 2 + 2, yOffset + i * 60 - 88);  // 阴影偏移
+        fill(0, 0, 0, this.textAlpha[i] * 0.2);  
+        text(texts[i], width / 2 + 2, yOffset + i * 60 - 88);  
         
-        // 主要文字
         fill(colors[i][0], colors[i][1], colors[i][2], this.textAlpha[i]);
         text(texts[i], width / 2, yOffset + i * 60 - 90);
         pop();
@@ -151,11 +169,13 @@ class MainScene {
     }
   }
 
+  /* 
+  Create a dynamic pointer effect that follows the mouse movement
+  */
   drawMouseInteraction() {
     push();
     translate(mouseX, mouseY);
     
-    // 绘制脉冲效果
     noFill();
     for (let i = 0; i < 3; i++) {
       let alpha = map(sin(frameCount * 0.05 + i), -1, 1, 50, 150);
@@ -165,18 +185,14 @@ class MainScene {
       ellipse(0, 0, size, size);
     }
     
-    // 绘制时钟指针样式的箭头
     stroke(255, 100, 50);
     strokeWeight(3);
     
-    // 主要指针
     line(-5, 0, 20, 0);
     
-    // 箭头尖端
     line(20, 0, 15, -5);
     line(20, 0, 15, 5);
     
-    // 装饰性小圆点
     noStroke();
     fill(255, 100, 50);
     ellipse(-5, 0, 6, 6);
@@ -184,10 +200,13 @@ class MainScene {
     pop();
   }
 
+  /*
+   Handle mouse click events. Control text display and scene transition
+   */
   handleClick() {
     this.ticktock++;
     if (this.ticktock <= 4) {
-      this.textAlpha[this.ticktock - 1] = 255;  // 点击后设置对应文字的透明度
+      this.textAlpha[this.ticktock - 1] = 255;  
     } else {
       currentScene = scenes.timeRewind;
       tickSound.stop();
@@ -196,30 +215,46 @@ class MainScene {
   }
 }
 
-// TimeRewind 场景
+/**
+ * TimeRewindScene: The second scene of the project.
+ * @class
+ * @description This scene create a particle(sand) system wioth a hourglass and a dynamic background to let people get into 
+ * the time rewind scene.
+ */
 class TimeRewindScene {
   constructor() {
+    // Particle system configuration
     this.particles = [];
     this.numParticles = 300;
+    
+    // Time warp effect configuration
     this.timeWarp = [];
     this.numWarpLines = 50;
     this.warpAngle = 0;
     this.warpSpeed = 0.02;
+    
+    // Hourglass configuration
+    this.hourglassWidth = 200;
+    this.neckWidth = 20;
+    this.neckHeight = 40;
+    
+    // Background gradient colors
     this.gradientColors = {
-      top: color(0, 12, 36),      // 深邃的夜空蓝
-      bottom: color(15, 32, 80)   // 稍微亮一点的深蓝
+      top: color(0, 12, 36),      
+      bottom: color(15, 32, 80)   
     };
+    
     this.initialize();
   }
 
   initialize() {
-    // 初始化粒子
+    // Initialize particles
     this.particles = [];
     for (let i = 0; i < this.numParticles; i++) {
       this.particles.push(this.createParticle());
     }
     
-    // 初始化时空扭曲线
+    // Initialize time warp effect
     this.timeWarp = [];
     for (let i = 0; i < this.numWarpLines; i++) {
       this.timeWarp.push({
@@ -228,7 +263,7 @@ class TimeRewindScene {
         speed: random(0.01, 0.03),
         thickness: random(1, 3),
         color: color(
-          random(150, 200),  // 偏蓝色调
+          random(150, 200),  
           random(180, 220), 
           random(230, 255), 
           random(130, 180)
@@ -238,24 +273,15 @@ class TimeRewindScene {
   }
 
   display() {
-    // 创建渐变背景
     this.drawBackground();
-    
-    // 绘制时空扭曲效果
     this.drawTimeWarp();
-    
-    // 绘制沙漏
     this.drawHourglass();
-    
-    // 绘制加速的粒子
     this.drawSand();
-    
-    // 更新扭曲角度
+    this.drawMouseHint(); 
     this.warpAngle += this.warpSpeed;
   }
 
   drawBackground() {
-    // 创建深蓝色渐变背景
     for (let y = 0; y < height; y++) {
       let inter = map(y, 0, height, 0, 1);
       let c = lerpColor(this.gradientColors.top, this.gradientColors.bottom, inter);
@@ -263,21 +289,19 @@ class TimeRewindScene {
       line(0, y, width, y);
     }
     
-    // 添加星空效果
     for (let i = 0; i < 150; i++) {
       let x = random(width);
       let y = random(height);
       let size = random(1, 3);
       let alpha = map(sin(frameCount * random(0.02, 0.05) + i), -1, 1, 50, 255);
       
-      // 添加星星的发光效果
       let starColor = color(255, 255, random(200, 255));
       fill(starColor.levels[0], starColor.levels[1], starColor.levels[2], alpha * 0.5);
       noStroke();
-      ellipse(x, y, size * 2);  // 外发光
+      ellipse(x, y, size * 2);  
       
       fill(starColor.levels[0], starColor.levels[1], starColor.levels[2], alpha);
-      ellipse(x, y, size);      // 星星本体
+      ellipse(x, y, size);     
     }
   }
 
@@ -285,7 +309,7 @@ class TimeRewindScene {
     push();
     translate(width/2, height/2);
     
-    // 绘制螺旋状的时空扭曲线
+    // Draw spiral of space-time distortions
     for (let warpLine of this.timeWarp) {
       stroke(warpLine.color);
       strokeWeight(warpLine.thickness);
@@ -300,7 +324,6 @@ class TimeRewindScene {
       }
       endShape();
       
-      // 平滑的半径变化
       warpLine.radius += sin(this.warpAngle * 0.5) * 2;
       warpLine.radius = constrain(warpLine.radius, 50, max(width, height));
     }
@@ -311,48 +334,45 @@ class TimeRewindScene {
     push();
     translate(width/2, height/2);
     
-    // 给沙漏添加发光效果
+    // create glow effect layer for hourglass
     noFill();
     for (let i = 3; i > 0; i--) {
       strokeWeight(i);
-      stroke(100, 150, 255, 50/i);  // 蓝色发光
+      stroke(100, 150, 255, 50/i);  
       
-      // 上三角
       beginShape();
-      vertex(-100, -200);
-      vertex(100, -200);
+      vertex(-this.hourglassWidth/2, -200);
+      vertex(this.hourglassWidth/2, -200);
       vertex(0, 0);
       endShape(CLOSE);
       
-      // 下三角
       beginShape();
-      vertex(-100, 200);
-      vertex(100, 200);
+      vertex(-this.hourglassWidth/2, 200);
+      vertex(this.hourglassWidth/2, 200);
       vertex(0, 0);
       endShape(CLOSE);
     }
     
-    // 主要沙漏轮廓
+    // main hourglass--solid outline
     strokeWeight(2);
     stroke(150, 180, 255, 150);
     
-    // 上下三角
     beginShape();
-    vertex(-100, -200);
-    vertex(100, -200);
+    vertex(-this.hourglassWidth/2, -200);
+    vertex(this.hourglassWidth/2, -200);
     vertex(0, 0);
     endShape(CLOSE);
     
     beginShape();
-    vertex(-100, 200);
-    vertex(100, 200);
+    vertex(-this.hourglassWidth/2, 200);
+    vertex(this.hourglassWidth/2, 200);
     vertex(0, 0);
     endShape(CLOSE);
     
-    // 中间的连接处
+    // draw neck connection
     fill(100, 150, 255, 100);
     noStroke();
-    rect(-10, -20, 20, 40);
+    rect(-this.neckWidth/2, -this.neckHeight/2, this.neckWidth, this.neckHeight);
     pop();
   }
 
@@ -361,60 +381,69 @@ class TimeRewindScene {
     translate(width/2, height/2);
     
     for (let particle of this.particles) {
-      // 更强的发光效果
+      // Draw particle glow effect
       for (let i = 3; i > 0; i--) {
         noStroke();
         let glowSize = particle.size * (i * 1.5);
         let glowAlpha = 100 / i;
-        fill(255, 220, 150, glowAlpha);  // 温暖的金色
+        fill(255, 220, 150, glowAlpha); 
         ellipse(particle.x, particle.y, glowSize);
       }
       
-      // 粒子本体
       fill(255, 220, 150);
       ellipse(particle.x, particle.y, particle.size);
       
-      // 加快移动速度
       particle.y -= particle.speed * 2;
       
-      // 穿过颈部时减速
-      if (particle.y < 20 && particle.y > -20) {
+      // Slow down particles in neck area
+      if (particle.y < this.neckHeight/2 && particle.y > -this.neckHeight/2) {
         particle.speed = max(particle.speed * 0.9, 0.5);
       }
       
-      // 循环
+      // Reset particles that reach the top
       if (particle.y < -height/2) {
         Object.assign(particle, this.createParticle(true));
       }
-      
       this.constrainToHourglass(particle);
     }
     pop();
   }
 
   createParticle(atBottom = false) {
-    let x = random(-100, 100);
+    let x = random(-this.hourglassWidth/2, this.hourglassWidth/2);
     let y = atBottom ? height/2 : random(-height/2, height/2);
     return {
       x,
       y,
-      speed: random(3, 6),  // 提高基础速度
+      speed: random(3, 6), 
       size: random(2, 5)
     };
   }
 
+  drawMouseHint() {
+    push();
+    let pulseAlpha = map(sin(frameCount * 0.05), -1, 1, 100, 255);
+    
+    noFill();
+    for (let i = 3; i > 0; i--) {
+        strokeWeight(i);
+        stroke(150, 180, 255, pulseAlpha/i);
+        circle(mouseX, mouseY, 30);
+    }
+  
+    fill(150, 180, 255, pulseAlpha);
+    noStroke();
+    circle(mouseX, mouseY, 10);
+    pop();
+}
+
   constrainToHourglass(particle) {
-    let hourglassWidth = 200;
-    let neckWidth = 20;
-    let neckHeight = 40;
+    let currentWidth = map(abs(particle.y), 0, height/2, this.neckWidth, this.hourglassWidth);
     
-    // 计算当前高度对应的宽度
-    let currentWidth = map(abs(particle.y), 0, height/2, neckWidth, hourglassWidth);
-    
-    // 限制在沙漏形状内
+    // Constrain particles within hourglass shape
     if (abs(particle.x) > currentWidth/2) {
       particle.x = sign(particle.x) * currentWidth/2;
-      particle.speed = random(3, 6);  // 碰撞后重置速度
+      particle.speed = random(3, 6); 
     }
   }
 
@@ -425,16 +454,22 @@ class TimeRewindScene {
   }
 }
 
-// 辅助函数
 function sign(x) {
   return x > 0 ? 1 : -1;
 }
 
-// Old Photo 场景
+
+/**
+ * OldPhotoScene: The third scene of the project
+ * @class
+ * @description An old photo with a ripple effect guide people to recall and enter the entangled reality.
+ * Each click will produce a ripple effect on the  photo, while displaying a text about memory.
+ */
 class OldPhotoScene {
   constructor() {
     this.transitionAlpha = 0;
     this.ripples = [];
+   
     this.clickCount = 0;
     this.currentMessage = "";
     this.messages = [
@@ -446,7 +481,7 @@ class OldPhotoScene {
 
   display() {
     if (this.transitionAlpha < 255) {
-      scenes.timeRewind.display(); // 渲染 TimeRewindScene 的最后一帧
+      scenes.timeRewind.display();
       tint(255, this.transitionAlpha);
       image(oldPhotoImage, 0, 0, width, height);
       this.transitionAlpha += 3;
@@ -456,6 +491,7 @@ class OldPhotoScene {
       this.displayMessage();
     }
   }
+
 
   handleClick() {
     this.ripples.push(new Ripple(mouseX, mouseY));
@@ -468,7 +504,7 @@ class OldPhotoScene {
     if (this.clickCount > this.messages.length) {
       oldPhotoSound.stop();
       flowFieldSound.loop();
-      currentScene = scenes.flowField;  // 添加场景转换
+      currentScene = scenes.flowField;  
     }
   }
 
@@ -516,6 +552,13 @@ class Ripple {
   }
 }
 
+/**
+ * FlowFieldScene: The fourth scene of the project
+ * @class
+ * @description Create a dynamic particle flow field to visualize the flow of time and memory.
+ * Particles move in a field generated by Perlin noise, 
+ * and people can change the activity of particles by pressing specific keyboard and clicking mouse.
+ */
 class FlowFieldScene {
   constructor() {
     this.particles = [];
@@ -526,39 +569,37 @@ class FlowFieldScene {
     this.particleCount = 1000;
     this.fadeAmount = 0;
     
-    // 状态变量
     this.mousePressed = false;
     this.mouseDragForce = 5;
-    this.baseSpeed = 0.8;  // 基础速度
+    this.baseSpeed = 0.8;  
     this.timeSpeed = this.baseSpeed;
     this.colorMode = 'default';
     this.noiseScale = 0.02;
     
-    // 键盘控制标志
+    // keyboard control
     this.keys = {
-      speedUp: false,    // A键 - 加速
-      slowDown: false,   // D键 - 减速
-      attract: false,    // W键
-      repel: false      // S键
+      speedUp: false,    
+      slowDown: false,   
+      attract: false,    
+      repel: false      
     };
     
-    // 转场相关的状态
+    // transition related
     this.transitionStarted = false;
     this.transitionProgress = 0;
     this.transitionSpeed = 0.005;
     this.spiralProgress = 0;
     
-    // 提示文字状态
     this.showPrompt = false;
     this.promptAlpha = 0;
     this.promptTimer = 0;
-    this.promptDelay = 300;  // 5秒后显示提示
+    this.promptDelay = 300;  
     
     this.initialize();
   }
 
   initialize() {
-    // 初始化流场
+    // initialize flow field
     for (let y = 0; y < this.rows; y++) {
       this.flowField[y] = [];
       for (let x = 0; x < this.cols; x++) {
@@ -566,12 +607,11 @@ class FlowFieldScene {
       }
     }
 
-    // 初始化粒子
+    // initialize particle
     for (let i = 0; i < this.particleCount; i++) {
       this.particles.push(this.createParticle(random(width), random(height)));
     }
     
-    // 添加键盘事件监听
     window.addEventListener('keydown', this.handleKeyDown.bind(this));
     window.addEventListener('keyup', this.handleKeyUp.bind(this));
   }
@@ -618,7 +658,7 @@ class FlowFieldScene {
       this.updateAndDrawParticles();
       this.displayText();
 
-      // 显示提示
+      // show prompt
       this.promptTimer++;
       if (this.promptTimer > this.promptDelay) {
         this.showTransitionPrompt();
@@ -736,12 +776,12 @@ class FlowFieldScene {
   }
 
   handleTimeControl() {
-    if (this.keys.speedUp) {  // A键按下 - 加速
-      this.timeSpeed = 3;  // 加速到3倍速
-    } else if (this.keys.slowDown) {  // D键按下 - 减速
-      this.timeSpeed = 0.01;  // 减速到0.2倍速
+    if (this.keys.speedUp) {  
+      this.timeSpeed = 3; 
+    } else if (this.keys.slowDown) {  
+      this.timeSpeed = 0.2;  
     } else {
-      this.timeSpeed = this.baseSpeed;  // 松开键后恢复到基础速度
+      this.timeSpeed = this.baseSpeed;  
     }
   }
 
@@ -852,13 +892,20 @@ class FlowFieldScene {
   }
 }
 
+/**
+ * TransitionScene: the fifth scene of the project
+ * @class
+ * @description The transition from the previous scene to the next delayed video scene, 
+ * allows people to clearly know what will happen in the next scene, without being confused
+ * or thinking it is a technical failure after watching the delayed video.
+ */
 class TransitionScene {
   constructor() {
     this.messageOpacity = 0;
     this.fadeInComplete = false;
     this.fadeOutStarted = false;
     this.timer = 0;
-    this.transitionDuration = 180; // 3 seconds at 60fps
+    this.transitionDuration = 180; 
     this.messages = [
       "Time bends, reality shifts...",
       "In the next scene,",
@@ -868,22 +915,17 @@ class TransitionScene {
     ];
     this.currentMessageIndex = 0;
     this.messageTimer = 0;
-    this.messageInterval = 90; // 1.5 seconds between messages
+    this.messageInterval = 90; 
     
-    // 添加几何过渡效果的属性
     this.particles = [];
     this.particleCount = 100;
     this.rotationAngle = 0;
     this.spiralRadius = 0;
-    
-    // 添加按键状态追踪
     this.spacePressed = false;
     
-    // 添加键盘事件监听器
     window.addEventListener('keydown', this.handleKeyDown.bind(this));
     window.addEventListener('keyup', this.handleKeyUp.bind(this));
     
-    // 初始化粒子
     this.initializeParticles();
   }
 
@@ -903,7 +945,6 @@ class TransitionScene {
   display() {
     background(0);
     
-    // Update timer
     this.timer++;
     this.messageTimer++;
 
@@ -915,15 +956,15 @@ class TransitionScene {
       }
     }
 
-    // 先绘制几何效果作为背景
+    //background
     this.drawTransitionEffects();
 
-    // 然后绘制文字，确保文字在几何效果上层
+    //text
     push();
     textAlign(CENTER, CENTER);
     textSize(36);
     
-    // Display all previous messages with reducing opacity
+    // Display previous messages with reducing opacity
     for (let i = 0; i <= this.currentMessageIndex; i++) {
       let messageY = height/2 - (this.currentMessageIndex - i) * 50;
       let opacity = map(i, this.currentMessageIndex - 2, this.currentMessageIndex, 50, 255);
@@ -939,7 +980,6 @@ class TransitionScene {
       fill(255, pulseOpacity);
       textSize(24);
       
-      // 添加条件提示
       if (this.timer < this.transitionDuration) {
         text("Wait...", width/2, height/2 + 100);
       } else {
@@ -949,41 +989,34 @@ class TransitionScene {
     pop();
   }
 
+  /* 
+  Render geometric transition effects using a particle system
+   */
   drawTransitionEffects() {
     push();
     translate(width/2, height/2);
     
-    // 更新旋转角度
     this.rotationAngle += 0.01;
     
-    // 更新螺旋半径
     this.spiralRadius = map(sin(frameCount * 0.02), -1, 1, 100, 200);
     
-    // 绘制每个粒子
     for (let particle of this.particles) {
-      // 更新粒子位置
       particle.angle += particle.speed;
       
-      // 计算粒子位置
       let r = particle.radius + this.spiralRadius;
       let x = cos(particle.angle + this.rotationAngle) * r;
       let y = sin(particle.angle + this.rotationAngle) * r;
       
-      // 创建脉冲效果
       let pulse = map(sin(frameCount * 0.1 + particle.pulsePhase), -1, 1, 0.5, 1.5);
       let size = particle.size * pulse;
       
-      // 计算颜色透明度
       let alpha = map(sin(frameCount * 0.05 + particle.pulsePhase), -1, 1, 100, 200);
       
-      // 绘制粒子
       noStroke();
       fill(red(particle.color), green(particle.color), blue(particle.color), alpha);
       
-      // 绘制主要粒子
       ellipse(x, y, size);
       
-      // 添加柔和的拖尾效果
       for (let i = 1; i <= 2; i++) {
         let trailX = x - cos(particle.angle + this.rotationAngle) * (i * 3);
         let trailY = y - sin(particle.angle + this.rotationAngle) * (i * 3);
@@ -1067,10 +1100,18 @@ class Memory {
   }
 }
 
+/**
+ * DelayedVideoScene: The sixth scene of the project
+ * @class
+ * @description It is a scene that can capture and display delayed video, 
+ * allowing the user to interact with their past self 
+ * and recall and reflect based on the background music and the text that appears on the screen. 
+ * This scene creates a contemplative space for the user through time displacement.
+ */
 class DelayedVideoScene {
   constructor() {
     this.delayedFrames = [];
-    this.maxDelay = 60;  // 1 second delay
+    this.maxDelay = 60;  
     this.memories = [];
     this.videoLoaded = false;
     this.capture = null;
