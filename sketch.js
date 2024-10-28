@@ -1183,7 +1183,7 @@ class Memory {
   display() {
     push();
     textAlign(CENTER, CENTER);
-    textSize(24);
+    textSize(30);
     fill(0, this.opacity * 0.5);
     text(this.text, this.x + 2, this.y + 2);
     fill(255, this.opacity);
@@ -1420,13 +1420,13 @@ class DelayedVideoScene {
     
     push();
     textAlign(CENTER, CENTER);
-    textSize(24);
+    textSize(30);
     fill(255);
     text("During this journey through time and space...", width/2, height/3);
     
     let y = height/2;
     this.reflections.forEach((reflection, index) => {
-      textSize(18);
+      textSize(28);
       fill(255, map(index, 0, this.reflections.length, 255, 180));
       text(reflection.text, width/2, y + index * 40);
     });
