@@ -469,7 +469,6 @@ class OldPhotoScene {
   constructor() {
     this.transitionAlpha = 0;
     this.ripples = [];
-   
     this.clickCount = 0;
     this.currentMessage = "";
     this.messages = [
@@ -477,6 +476,9 @@ class OldPhotoScene {
       "Is there something you could not forget?",
       "Are you entangled with the past?"
     ];
+    
+    this.mouseGlowSize = 40;
+    this.mouseGlowOpacity = 60;
   }
 
   display() {
@@ -488,8 +490,31 @@ class OldPhotoScene {
     } else {
       image(oldPhotoImage, 0, 0, width, height);
       this.drawRipples();
+      this.drawMouseGlow(); 
       this.displayMessage();
     }
+  }
+
+  drawMouseGlow() {
+    push();
+    blendMode(SCREEN); 
+    noStroke();
+    
+    for (let i = this.mouseGlowSize; i > 0; i -= 1.5) {
+      let alpha = map(i, 0, this.mouseGlowSize, 0, this.mouseGlowOpacity);
+      fill(180, 160, 140, alpha);
+      circle(mouseX, mouseY, i);
+    }
+    
+    for (let i = this.mouseGlowSize * 0.6; i > 0; i -= 1.5) {
+      let alpha = map(i, 0, this.mouseGlowSize * 0.6, 0, this.mouseGlowOpacity * 1.2);
+      fill(200, 180, 160, alpha);
+      circle(mouseX, mouseY, i);
+    }
+    fill(255, 240, 220, this.mouseGlowOpacity * 1.5);
+    circle(mouseX, mouseY, 4);
+    
+    pop();
   }
 
 
