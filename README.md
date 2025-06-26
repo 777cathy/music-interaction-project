@@ -1,8 +1,1 @@
-# COMP1720/6720 major project template
-
-https://comp.anu.edu.au/courses/comp1720/assessments/major-project/
-
-
-This is the big one! Make sure you read the assignment page carefully, and if you have questions then ask for help early during your lab session or on the course forum.
-
-Good luck, we're looking forward to seeing what you create.
+An interactive music visualization project built with p5.js. It features five narrative-driven scenes, each synchronized with custom sound effects and animations. Users can navigate through scenes like a ticking clock, an old photograph, and a flow field simulation, with visual responses dynamically driven by audio inputs. Designed for immersive storytelling and emotional resonance through audiovisual interaction.
